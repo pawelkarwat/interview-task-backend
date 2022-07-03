@@ -1,4 +1,4 @@
-export interface RegistrationRespModel {
+export interface RegisterRespDto {
   success: boolean;
   message: string;
 }

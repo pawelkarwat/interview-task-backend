@@ -1,8 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
-import { RegistrationReqModel } from '../models/registration.req.model';
-import { RegistrationRespModel } from '../models/registration.resp.model';
 import { User } from '../entities/user';
 import * as bcrypt from 'bcrypt';
 import * as randomToken from 'rand-token';
@@ -11,6 +9,7 @@ import * as moment from 'moment';
 import { Injectable } from '@nestjs/common';
 import { RegisterDto } from '../dto/register.dto';
 import { S3Service } from './s3.service';
+import { RegisterRespDto } from '../dto/register-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -20,9 +19,7 @@ export class UsersService {
     private readonly s3Service: S3Service,
   ) {}
 
-  public async registerUser(
-    registrationData: RegisterDto,
-  ): Promise<RegistrationRespModel> {
+  async registerUser(registrationData: RegisterDto): Promise<RegisterRespDto> {
     const errorMessage = await this.registrationValidation(registrationData);
     if (errorMessage) {
       return {
@@ -57,7 +54,7 @@ export class UsersService {
     };
   }
 
-  public async validateUserCredentials(
+  async validateUserCredentials(
     login: string,
     password: string,
   ): Promise<CurrentUser> {
@@ -80,14 +77,14 @@ export class UsersService {
     };
   }
 
-  public async getJwtToken(user: CurrentUser): Promise<string> {
+  async getJwtToken(user: CurrentUser): Promise<string> {
     const payload = {
       ...user,
     };
     return this.jwtService.signAsync(payload);
   }
 
-  public async getRefreshToken(userId: string): Promise<string> {
+  async getRefreshToken(userId: string): Promise<string> {
     const userDataToUpdate = {
       refreshToken: randomToken.generate(16),
       refreshTokenExp: moment().add(1, 'w').format('YYYY/MM/DD'),
@@ -97,7 +94,7 @@ export class UsersService {
     return userDataToUpdate.refreshToken;
   }
 
-  public async validRefreshToken(
+  async validRefreshToken(
     login: string,
     refreshToken: string,
   ): Promise<CurrentUser> {
